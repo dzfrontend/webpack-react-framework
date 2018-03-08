@@ -7,17 +7,18 @@
 
 ### Webpack基础配置
 
+webpack官方文档：<http://webpackjs.org>  
 webpack打包初始化：  
 
 > 安装npm i webpack --save -dev  
 > 在build/config.js里写好配置  
-> package.json添加 "build": "webpack --config build/webpack.config.js"  
+> package.json的"scripts"添加 "build": "webpack --config build/webpack.config.js"  
 > 运行npm run build
 
 build/config.js：
 
 ```javascript
-
+	
 	const path = require('path')
 	module.exports = {
 	    // 入口文件
@@ -91,12 +92,55 @@ build/config.js：
     	...output,
 		...module,
 		plugins: [
-	        new HTMLPlugin()
+	        new HTMLPlugin({
+	            template: path.join(__dirname, '../client/template.html') //指定模板文件
+	        }) // 安装html-webpack-plugin插件,自动生成index.html文件(如果不存在指定模板文件时),并且把打包文件注入html里面
 	    ]
 	}
 ```  
 
 这样就简单配置成功打包react的应用啦。
+
+### Webpack-dev-server
+
+> 本地服务器和自动编译打包的作用
+> npm i webpack-dev-server -D
+
+webpack/webpack.config.js 下面为webpack-dev-server的配置
+
+```javascript
+
+	const config = {
+		..entry,
+    	...output,
+		...module,
+		plugins
+	}
+	const isDev = process.env.NODE_ENV === 'development' //用于命令行运行package.json设置的环境变量的判断
+
+	// 如果运行的环境变量为'development'，则启用webpack-dev-server
+	if(isDev){
+	    config.devServer = {
+	        host: '0.0.0.0', //可以使用任何方式访问 => 本地ip/localhost/127.0.0.1
+	        port: '8888', //端口号
+	        contentBase: path.join(__dirname, '../dist'), // 本地服务器的访问路径
+	        // hot: true, // hot-module-replacement插件是否启动，即热加载，需要安装
+	        overlay: {errors: true},
+	        publicPath: '/public', //和webpack里output publicPath对应一样，不然加载文件的路径不对
+	        historyApiFallback: {
+	            index: '/public/index.html' //所有请求的不存在页面到这里来
+	        }
+	    }
+	}
+	
+	module.exports = config
+```
+
+> 接下来在package.json的"scripts"配置环境变量为development的命令，在本地开发用这个命令
+
+	"dev:client": "cross-env NODE_ENV=development webpack-dev-server --config webpack/webpack.config.js"
+
+命令行工具运行npm run dev:client，就运行了webpack-dev-server，浏览器访问<http://localhost:8888/>.
 
 ## 项目目录
 
