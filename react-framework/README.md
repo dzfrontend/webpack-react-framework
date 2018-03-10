@@ -11,11 +11,11 @@ webpack官方文档：<http://webpackjs.org>
 webpack打包初始化：  
 
 > 安装npm i webpack --save -dev  
-> 在build/config.js里写好配置  
-> package.json的"scripts"添加 "build": "webpack --config build/webpack.config.js"  
+> 在webpack/webpack.config.client.js里写好配置  
+> package.json的"scripts"添加 "build": "webpack --config webpack/webpack.config.client.js"  
 > 运行npm run build
 
-build/config.js：
+webpack/webpack.config.client.js：
 
 ```javascript
 	
@@ -56,7 +56,7 @@ build/config.js：
 		]
 	}
 
-build/config.js：
+webpack/webpack.config.client.js：
 
 ```javascript
 
@@ -106,7 +106,7 @@ build/config.js：
 > 本地服务器和自动编译打包的作用
 > npm i webpack-dev-server -D
 
-webpack/webpack.config.js 下面为webpack-dev-server的配置
+webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 
 ```javascript
 
@@ -124,7 +124,7 @@ webpack/webpack.config.js 下面为webpack-dev-server的配置
 	        host: '0.0.0.0', //可以使用任何方式访问 => 本地ip/localhost/127.0.0.1
 	        port: '8888', //端口号
 	        contentBase: path.join(__dirname, '../dist'), // 本地服务器的访问路径
-	        // hot: true, // hot-module-replacement插件是否启动，即热加载，需要安装
+	        // hot: true, // hot-module-replacement是否启动，即热加载，需要安装react-hot-loader
 	        overlay: {errors: true},
 	        publicPath: '/public', //和webpack里output publicPath对应一样，不然加载文件的路径不对
 	        historyApiFallback: {
@@ -138,9 +138,60 @@ webpack/webpack.config.js 下面为webpack-dev-server的配置
 
 > 接下来在package.json的"scripts"配置环境变量为development的命令，在本地开发用这个命令
 
-	"dev:client": "cross-env NODE_ENV=development webpack-dev-server --config webpack/webpack.config.js"
+	"dev:client": "cross-env NODE_ENV=development webpack-dev-server --config webpack/webpack.config.client.js"
 
 命令行工具运行npm run dev:client，就运行了webpack-dev-server，浏览器访问<http://localhost:8888/>.
+
+
+> 实现局部热加载 npm i react-hot-loader -D
+
+在.babelrc文件加上
+
+	{
+		"presets"：...，
+		"plugins": ["react-hot-loader/babel"]
+	}
+
+在webpack/webpack.config.client.js里加上
+
+	if(isDev){
+	    config.entry = { //热加载打包入口文件增加打包文件'react-hot-loader/patch'
+	        app: [
+	            'react-hot-loader/patch',
+	            path.join(__dirname, '../client/app.js')
+	        ]
+	    }
+	    ...config.devServer
+	    config.plugins.push(new webpack.HotModuleReplacementPlugin()) //热加载加入pugins里
+	}
+
+在入口文件写为
+
+	import React from 'react'
+	import ReactDom from 'react-dom'
+	import App from './App.jsx'
+	import { AppContainer } from 'react-hot-loader' // 热加载
+	
+	// ReactDom.render(<App/>,document.getElementById('root'))
+	
+	// 热加载配置引入的组件加<AppContainer>包裹
+	const render = (Comment) => {
+	    ReactDom.render(
+	        <AppContainer>
+	            <Comment />
+	        </AppContainer>,
+	        document.getElementById('root')
+	    )
+	}
+	render(App)
+	if(module.hot){
+	    module.hot.accept('./App.jsx',()=>{
+	        const App = require('./App.jsx').default
+	        render(App)
+	    })
+	}
+
+
 
 ## 项目目录
 
