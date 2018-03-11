@@ -7,7 +7,8 @@ import { AppContainer } from 'react-hot-loader' // 热加载
 
 // 热加载配置引入的组件加<AppContainer>包裹
 const render = (Comment) => {
-    ReactDom.render(
+    ReactDom.hydrate(
+        //服务端渲染ReactDom.render替换成ReactDom.hydrate
         <AppContainer>
             <Comment />
         </AppContainer>,
