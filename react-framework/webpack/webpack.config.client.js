@@ -14,7 +14,7 @@ const config = {
     output: {
         filename: '[name].[hash].js', //打包文件名，ame为entry的name
         path: path.join(__dirname, '../dist'), //打包路径
-        publicPath: '/public' //前缀 
+        publicPath: '/public/' //前缀 
     },
     module: {
         rules: [
@@ -54,7 +54,7 @@ if(isDev){
         contentBase: path.join(__dirname, '../dist'), // 本地服务器的访问路径
         hot: true, // hot-module-replacement是否启动，即热加载，需要安装react-hot-loader
         overlay: {errors: true},
-        publicPath: '/public', //和webpack里output publicPath对应一样，不然加载文件的路径不对
+        publicPath: '/public/', //和webpack里output publicPath对应一样，不然加载文件的路径不对
         historyApiFallback: {
             index: '/public/index.html' //所有请求的不存在页面到这里来
         }

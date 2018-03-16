@@ -12,7 +12,7 @@
  	output: {
  		filename: 'server-entry.js', //server端没有用hash
  		path: path.join(__dirname, '../dist'), //打包路径
-        publicPath: '/public', //前缀
+        publicPath: '/public/', //前缀
         libraryTarget: 'commonjs2' //server端commonjs规范，适用于服务端
  	},
 	module: {
