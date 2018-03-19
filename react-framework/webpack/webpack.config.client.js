@@ -14,10 +14,19 @@ const config = {
     output: {
         filename: '[name].[hash].js', //打包文件名，ame为entry的name
         path: path.join(__dirname, '../dist'), //打包路径
-        publicPath: '/public/' //前缀 
+        publicPath: '/public/' //前缀
     },
     module: {
         rules: [
+            {
+                // eslint配置
+                enforce: 'pre', //在执行rules之前
+                test: /.(js|jsx)$/,
+                loader: 'eslint-loader',
+                exclude: [
+                  path.resolve(__dirname, '../node_modules')
+                ]
+            },
             {
                 test: /.jsx$/, //匹配后缀为jsx的文件
                 loader: 'babel-loader' // 编译loader

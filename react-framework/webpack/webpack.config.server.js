@@ -18,6 +18,15 @@
 	module: {
         rules: [
             {
+                // eslint配置
+                enforce: 'pre', //在执行rules之前
+                test: /.(js|jsx)$/,
+                loader: 'eslint-loader',
+                exclude: [
+                  path.resolve(__dirname, '../node_modules')
+                ]
+            },
+            {
                 test: /.jsx$/, //匹配后缀为jsx的文件
                 loader: 'babel-loader' // 编译loader
             },

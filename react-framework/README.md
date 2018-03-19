@@ -43,7 +43,7 @@ webpack/webpack.config.client.js：
 
 > 处理jsx文件，安装npm i babel-loader -D(--save -dev)
 
-> babel支持es6语法，安装babel-loader后想要支持jsx，还要在更目录新建babel的配置文件.babelrc
+> babel支持es6语法，安装babel-loader后想要支持jsx，还要在根目录新建babel的配置文件.babelrc
 
 > 此外还要安装npm i babel-core babel-preset-es2015 babel-preset-es2015-loose babel-preset-react -D
 
@@ -88,8 +88,8 @@ webpack/webpack.config.client.js：
 ```javascript
 
 	module.exports = {
-		..entry,
-    	...output,
+		...entry,
+		...output,
 		...module,
 		plugins: [
 	        new HTMLPlugin({
@@ -111,8 +111,8 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 ```javascript
 
 	const config = {
-		..entry,
-    	...output,
+		...entry,
+		...output,
 		...module,
 		plugins
 	}
@@ -136,11 +136,13 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 	module.exports = config
 ```
 
-> 接下来在package.json的"scripts"配置环境变量为development的命令，在本地开发用这个命令
+> 接下来在package.json的"scripts"配置环境变量为development的命令。
+  
+> 其中**设置环境变量**为webpack中process.env.NODE_ENV === 'development'配置的话，需要安装**npm i cross-env -D**，然后cross-env NODE_ENV=development就设置了环境变量为'development'
 
 	"dev:client": "cross-env NODE_ENV=development webpack-dev-server --config webpack/webpack.config.client.js"
 
-命令行工具运行npm run dev:client，就运行了webpack-dev-server，浏览器访问<http://localhost:8888/>.
+在本地开发时，命令行工具运行npm run dev:client，就运行了webpack-dev-server，浏览器访问<http://localhost:8888/>.
 
 
 > 实现局部热加载 npm i react-hot-loader -D
@@ -154,6 +156,8 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 
 在webpack/webpack.config.client.js里加上
 
+```javascript
+
 	if(isDev){
 	    config.entry = { //热加载打包入口文件增加打包文件'react-hot-loader/patch'
 	        app: [
@@ -165,7 +169,11 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 	    config.plugins.push(new webpack.HotModuleReplacementPlugin()) //热加载加入pugins里
 	}
 
+```
+
 在入口文件写为
+
+```javascript
 
 	import React from 'react'
 	import ReactDom from 'react-dom'
@@ -191,6 +199,7 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 	    })
 	}
 
+```
 ### react服务端渲染基础配置
 
 > React如何使用服务端渲染：react-dom/server用于服务端将react组件渲染成html。  
@@ -205,23 +214,26 @@ server/server.js：
 
 	const express = require('express')
 	const ReactSSR = require('react-dom/server')
-	const serverEntry = require('../dist/server-entry').default // react服务端入口文件打包后的文件
 	const fs = require('fs')
 	const path = require('path')
 	
+	const app = express()
+
+	// react服务端webpack配置webpack.config.server.js运行打包后的文件
+	const serverEntry = require('../dist/server-entry').default
+
 	// html打包后的模板，用来插入服务端渲染后的html
 	const template = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8') //readFileSync同步读取
-	
-	const app = express()
-	
-	// 静态文件请求
-	// 指定../dist为静态文件目录，'/public'为webpack里output的publicPath路径，请求带有'/public'表示为静态资源请求，指向'../dist'目录
+
+	/* 
+	 * 静态文件请求
+	 * 指定../dist为静态文件目录，'/public'为webpack里output的publicPath路径，请求带有'/public'表示为静态资源请求，指向'../dist'目录
+	*/
 	app.use('/public', express.static(path.join(__dirname, '../dist'))) 
-	
+
 	// 服务端请求
 	app.get('*', function(req,res){
 		const appString = ReactSSR.renderToString(serverEntry)
-		// 将服务端渲染的内容替换本地的内容
 		res.send(template.replace('<app></app>', appString))
 	})
 	
@@ -243,10 +255,45 @@ client/server-entry.js
 	export default <App />
 ```
 
-webpack/webpack.config.server.js为之前打包react的配置。
+webpack/webpack.config.server.js和之前配置类似，入口文件改为了server-entry.js
 
+	/**
+	 * 服务端渲染加的webpack配置
+	 */
+	 const path = require('path')
+	 const HTMLPlugin = require('html-webpack-plugin')
+	
+	 module.exports = {
+	 	target: 'node', //target表示执行环境为node
+	 	entry: {
+	 		app: path.join(__dirname, '../client/server-entry.js')
+	 	},
+	 	output: {
+	 		filename: 'server-entry.js', //server端没有用hash
+	 		path: path.join(__dirname, '../dist'), //打包路径
+	        publicPath: '/public/', //前缀
+	        libraryTarget: 'commonjs2' //server端commonjs规范，适用于服务端
+	 	},
+		module: {
+	        rules: [
+	            {
+	                test: /.jsx$/, //匹配后缀为jsx的文件
+	                loader: 'babel-loader' // 编译loader
+	            },
+	            {
+	                test: /.js$/,
+	                loader: 'babel-loader',
+	                exclude: [
+	                    path.join(__dirname,'../node_modules') //排除的文件夹
+	                ]
+	            }
+	        ]
+	    }
+	 }
 
-> 在package.json配置命令打包入口文件和服务端渲染的前端入口文件
+> 在package.json配置命令打包入口文件和服务端渲染的前端入口文件  
+
+> 其中清除文件的命令"clear"需要安装npm i rimraf -D
 
 	{
 		"scripts": {
@@ -263,6 +310,116 @@ webpack/webpack.config.server.js为之前打包react的配置。
 	npm run build // 同时打包
 	npm run start // 启动服务端渲染
 
+### react服务端渲染本地环境配置
+
+> 和react服务端渲染基础配置类似，只是本地开发环境用的是webpack-dev-server，没有生成本地打包文件；解决方案是通过axios请求本地服务器的资源 + webpack编译webpack.config.server.js。具体实现本地服务端渲染代码在server/util/dev-static.js
+
+在package.json里
+
+	"scripts": {
+		"dev:client": "cross-env NODE_ENV=development webpack-dev-server --config webpack/webpack.config.client.js",
+    	"dev:server": "cross-env NODE_ENV=development node server/server.js",
+	}
+
+> 运行npm run dev:client 首先启动本地开发环境服务器webpck-dev-server  
+> 运行npm run dev:server 启动本地服务端渲染  
+> 访问 <http://localhost:3333> 查看index.html里面的div id="root"里面有内容，说明本地服务端渲染配置成功
+
+
+### 使用eslint和editconfig规范代码
+
+#### eslint
+
+> 作用：规范代码  
+> .eslintrc文件为eslint的配置文件  
+> rules里面可以定义一些忽略规则；在代码里想要忽略检查可以加上eslint-disable-line。
+
+安装的插件详见代码。
+
+根目录.eslintrc：全局eslint
+
+	{
+	  "extends": "standard" //标准的规则
+	}
+
+client/.eslintrc：react的eslint规则
+
+> 其中rules里面可以定义一些忽略规则，添加了忽略规则不会报相应错误提示
+
+	{
+	  // 解析器(解析js)
+	  "parser": "babel-eslint",
+	  "env": {
+	    "browser": true, // 执行环境为browser，包含window对象
+	    "es6": true,
+	    "node": true
+	  },
+	  "parserOptions": {
+	    "ecmaVersion": 6,
+	    "sourceType": "module"
+	  },
+	  // airbnb规则，适用于react
+	  "extends": "airbnb",
+	  "rules": {
+	    //不写分号
+	    "semi": [0],
+	    // 报linebreak-style错误忽略
+	    "linebreak-style": 0,
+	    // 不能写在js而是jsx忽略
+	    "react/jsx-filename-extension": [0],
+	    // 缩进忽略
+	    "indent": [0]
+	  }
+	}
+
+> 配置了.eslintrc文件还不够，还需要在webpack.config里面的rules加上eslint配置
+
+```javascript
+
+	module: {
+        rules: [
+            {
+                // eslint配置
+                enforce: 'pre', //在执行rules之前
+                test: /.(js|jsx)$/,
+                loader: 'eslint-loader',
+                exclude: [
+                  path.resolve(__dirname, '../node_modules')
+                ]
+            }
+        ]
+    },
+
+``` 
+
+
+#### editconfig
+
+> 编辑器配置插件，vscode和sublime需要安装EditorConfig插件，.editorconfig配置文件才有效。
+
+.editorconfig
+
+	root = true // 项目根目录
+	
+	[*]
+	charset = utf-8
+	indent_style = space
+	indent_size = 4
+	end_of_line = lf
+	insert_final_newline = true // 末尾自动添加一行空行
+	trim_trailing_whitespace = true // 末尾去掉空格
+
+#### eslint正确git才能提交
+
+> 安装 npm i husky -D
+
+在package.json
+
+	"scripts":{
+		"precommit": "eslint --ext .js --ext .jsx"
+	}
+
+在执行git commit之前，会执行precommit命令，只有eslint正确才能提交。
 
 ## 项目目录
 
