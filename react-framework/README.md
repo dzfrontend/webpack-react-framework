@@ -3,11 +3,11 @@
 主要介绍React项目环境如何配置，项目如何架构的。
 
 
-## 项目如何架构的
+# 项目如何架构的
 
-### 1.工程架构
+## 1.工程架构
 
-#### Webpack基础配置
+### Webpack基础配置
 
 webpack官方文档：<http://webpackjs.org>  
 webpack打包初始化：  
@@ -39,7 +39,7 @@ webpack/webpack.config.client.js：
 
 运行npm run build后，将client/app.js打包生成dist/app.hash.js
 
-#### Webpack loader基础应用
+### Webpack loader基础应用
 
 配置打包react的loader：  
 
@@ -103,7 +103,7 @@ webpack/webpack.config.client.js：
 
 这样就简单配置成功打包react的应用啦。
 
-#### Webpack-dev-server
+### Webpack-dev-server
 
 > 本地服务器和自动编译打包的作用
 > npm i webpack-dev-server -D
@@ -202,7 +202,7 @@ webpack/webpack.config.client.js 下面为webpack-dev-server的配置
 	}
 
 ```
-#### react服务端渲染基础配置
+### react服务端渲染基础配置
 
 > React如何使用服务端渲染：react-dom/server用于服务端将react组件渲染成html。  
 
@@ -259,6 +259,8 @@ client/server-entry.js
 
 webpack/webpack.config.server.js和之前配置类似，入口文件改为了server-entry.js
 
+```javascript
+
 	/**
 	 * 服务端渲染加的webpack配置
 	 */
@@ -293,6 +295,8 @@ webpack/webpack.config.server.js和之前配置类似，入口文件改为了ser
 	    }
 	 }
 
+```
+
 > 在package.json配置命令打包入口文件和服务端渲染的前端入口文件  
 
 > 其中清除文件的命令"clear"需要安装npm i rimraf -D
@@ -312,7 +316,7 @@ webpack/webpack.config.server.js和之前配置类似，入口文件改为了ser
 	npm run build // 同时打包
 	npm run start // 启动服务端渲染
 
-#### react服务端渲染本地环境配置
+### react服务端渲染本地环境配置
 
 > 和react服务端渲染基础配置类似，只是本地开发环境用的是webpack-dev-server，没有生成本地打包文件；解决方案是通过axios请求本地服务器的资源 + webpack编译webpack.config.server.js。具体实现本地服务端渲染代码在server/util/dev-static.js
 
@@ -328,9 +332,9 @@ webpack/webpack.config.server.js和之前配置类似，入口文件改为了ser
 > 访问 <http://localhost:3333> 查看index.html里面的div id="root"里面有内容，说明本地服务端渲染配置成功
 
 
-#### 使用eslint和editconfig规范代码
+### 使用eslint和editconfig规范代码
 
-##### eslint
+#### eslint
 
 > 作用：规范代码  
 > .eslintrc文件为eslint的配置文件  
@@ -395,7 +399,7 @@ client/.eslintrc：react的eslint规则
 ``` 
 
 
-##### editconfig
+#### editconfig
 
 > 编辑器配置插件，vscode和sublime需要安装EditorConfig插件，.editorconfig配置文件才有效。
 
@@ -411,7 +415,7 @@ client/.eslintrc：react的eslint规则
 	insert_final_newline = true // 末尾自动添加一行空行
 	trim_trailing_whitespace = true // 末尾去掉空格
 
-##### eslint正确git才能提交
+#### eslint正确git才能提交
 
 > 安装 npm i husky -D
 
@@ -423,8 +427,62 @@ client/.eslintrc：react的eslint规则
 
 在执行git commit之前，会执行precommit命令，只有eslint正确才能提交。
 
-### 2.项目架构
+## 2.项目架构
 
+### React-Router4路由配置
+
+>  npm i react-router react-router-dom -S  
+
+> react-router4使用的时候只需引用 react-router-dom，如果搭配 redux，你还需要使用 react-router-redux
+
+先配置路由地址：
+
+```javascript
+	
+	import { BrowserRouter, Route, Redirect } from 'react-router-dom'
+
+	ReactDOM.render(
+	  (<BrowserRouter>
+	    <App> {/* app组件 */}
+	        <Route key="index" path="/" render={() => <Redirect to="/list" />} exact />
+	        <Route key="list" path="/list" component={TopicList} />
+	        <Route key="detail" path="/detail" component={TopicDetail} />
+	    </App>
+	  </BrowserRouter>),
+	  document.getElementById('root')
+	);
+	
+	// app组件中
+	class App extends Component {
+	  render() {
+	    return (
+	      {this.props.children} // 将配置路由渲染
+	    );
+	  }
+	}
+```
+
+> 其中**< Route />必须要< BrowserRouter >包裹**，Redirect为重定向
+
+配置好路由后就可以直接通过指定的path路径访问
+
+```javascript
+
+	import { Link } from 'react-router-dom'
+
+	class App extends Component {
+	  render() {
+	    return (
+	      <div>
+        	<Link to="/">首页</Link>
+        	<Link to="/list">列表页</Link>
+        	<Link to="/detail">详情页</Link>
+	      </div>
+	    );
+	  }
+	}
+
+```
 
 ## 项目目录
 

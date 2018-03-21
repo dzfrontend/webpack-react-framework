@@ -1,24 +1,30 @@
 import React from 'react'
 import ReactDom from 'react-dom'
-import App from './App.jsx'
 import { AppContainer } from 'react-hot-loader' // eslint-disable-line
+import { BrowserRouter } from 'react-router-dom'
 
-// ReactDom.render(<App/>,document.getElementById('root'))
+import App from './Views/App'
 
-// 热加载配置引入的组件加<AppContainer>包裹
-const render = (Comment) => {
+// 热加载配置 => 引入的组件加<AppContainer>包裹
+const render = (Component) => {
     // 服务端渲染ReactDom.render替换成ReactDom.hydrate
     ReactDom.hydrate(
       <AppContainer>
-        <Comment />
+        <BrowserRouter>
+          <Component />
+        </BrowserRouter>
       </AppContainer>,
       document.getElementById('root'),
     )
 }
+
+// ReactDom.render(<App/>,document.getElementById('root'))
 render(App)
+
+// 热加载
 if (module.hot) {
-    module.hot.accept('./App.jsx', () => {
-        const App = require('./App.jsx').default // eslint-disable-line
+    module.hot.accept('./Views/App', () => {
+        const App = require('./Views/App').default // eslint-disable-line
         render(App)
     })
 }

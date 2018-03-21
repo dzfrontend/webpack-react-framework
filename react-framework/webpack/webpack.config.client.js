@@ -16,6 +16,9 @@ const config = {
         path: path.join(__dirname, '../dist'), //打包路径
         publicPath: '/public/' //前缀
     },
+    resolve: {
+        extensions: ['.js', '.jsx'] // js jsx后缀不添加自动处理
+    },
     module: {
         rules: [
             {
