@@ -484,5 +484,128 @@ client/.eslintrc：react的eslint规则
 
 ```
 
+### Mobx
+
+> 和redux的作用类似，文档<http://cn.mobx.js.org/>
+
+> 安装mobx和mobx-react： npm i mobx mobx-react -S
+
+> mobx的流程如下，和redux的流程很相似；mobx的Computed相当于redux的Reducer，mobx的Reaction相当于redux的Store.
+
+<img src="http://cn.mobx.js.org/flow.png"/>
+
+>webpack环境还需要配置.babel文件； 安装所需插件npm i babel-plugin-transform-decorators-legacy babel-preset-stage-1 -D
+
+.babel：在"presets"里加上"state-1"，"plugins"里加上"transform-decorators-legacy"
+
+	{
+		"presets": [
+			...
+	        "state-1"
+		],
+		"plugins": ["transform-decorators-legacy"]
+	}
+
+mobx的使用：
+
+在app-state.js里面定义好action，state，computed
+
+```javascript
+
+	import { observable, computed, action } from 'mobx'
+	
+	class AppState {
+	    constructor({ count, name } = { count: 0, name: 'Jack' }) {
+	        this.count = count
+	        this.name = name
+	    }
+	    // observable定义state
+	    @observable count
+	    @observable name
+	
+	    // computed
+	    @computed get msg() {
+	        return `${this.name} say count is ${this.count}`
+	    }
+	
+	    // action
+	    @action add() {
+	      this.count += 1
+	    }
+	    @action changeName(name) {
+	      this.name = name
+	    }
+	}
+	
+	const appState = new AppState()
+	
+	setInterval(() => {
+	    appState.add()
+	}, 1000)
+	export default appState
+
+```
+
+然后将app-state.js绑定到根组件：
+
+```javascript
+
+	import { Provider } from 'mobx-react'
+	import appState from './store/app-state'
+	
+	ReactDom.render(
+		<Provider appState={appState}>
+          <BrowserRouter>
+            <App/>
+          </BrowserRouter>
+        </Provider>,
+		document.getElementById('root')
+	)
+
+```
+
+组件中再去使用mobx
+
+```javascript
+
+	/*
+	 * MobX在Component中的使用
+	*/
+	import React from 'react'
+	import { observer, inject } from 'mobx-react'
+	import PropTypes from 'prop-types'
+	
+	import { AppState } from '../../store/app-state'
+	// 将绑定好的mobx注册到组件中并且observer（监听mobx的state）
+	@inject('appState') @observer
+	
+	export default class MobxComponent extends React.Component {
+	    constructor() {
+	        super()
+	        this.changeName = this.changeName.bind(this)
+	    }
+	    changeName(event) {
+	        this.props.appState.changeName(event.target.value)
+	    }
+	    render() {
+	        return (
+	            <div>
+	                <div>mobx page</div>
+	                <input type="text" onChange={this.changeName} />
+	                <span>{this.props.appState.msg}</span>
+	            </div>
+	
+	        )
+	    }
+	}
+	
+	// react传入的props需要声明类型的话，用prop-types插件检测props的类型
+	MobxComponent.propTypes = {
+	    appState: PropTypes.instanceOf(AppState)
+	}
+```
+
+
+
 ## 项目目录
 

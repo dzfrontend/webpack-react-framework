@@ -2,7 +2,7 @@ import React from 'react'
 import {
   Link,
 } from 'react-router-dom'
-import Routes from '../Route/router'
+import Routes from '../route/router'
 
 export default class App extends React.Component {
   componentDidMount() {
@@ -17,6 +17,8 @@ export default class App extends React.Component {
         <Link to="/list">列表页</Link>
         <br />
         <Link to="/detail">详情页</Link>
+        <br />
+        <Link to="/mobx">mobx配置</Link>
       </div>,
       <Routes key="routes" />,
     ]

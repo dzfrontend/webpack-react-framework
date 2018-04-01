@@ -14,6 +14,10 @@
     "semi": [0],
     "linebreak-style": 0,
     "react/jsx-filename-extension": [0],
-    "indent": [0]
+    "indent": [0],
+    "no-unused-vars": [0],
+    "react/jsx-indent": [0],
+    "react/require-default-props": [0],
+    "comma-dangle": [0]
   }
 }
