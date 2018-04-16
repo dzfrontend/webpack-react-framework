@@ -318,7 +318,7 @@ webpack/webpack.config.server.js和之前配置类似，入口文件改为了ser
 
 ### react服务端渲染本地环境配置
 
-> 和react服务端渲染基础配置类似，只是本地开发环境用的是webpack-dev-server，没有生成本地打包文件；解决方案是通过axios请求本地服务器的资源 + webpack编译webpack.config.server.js。具体实现本地服务端渲染代码在server/util/dev-static.js
+> 和react服务端渲染基础配置类似，只是本地开发环境用的是webpack-dev-server，没有生成本地打包文件；解决方案是通过axios请求本地服务器的资源 + webpack编译webpack.config.server.js。具体实现本地服务端渲染代码在server/util/dev-static.js，而server/server.js里会判断在'development'环境执行dev-static.js。
 
 在package.json里
 
