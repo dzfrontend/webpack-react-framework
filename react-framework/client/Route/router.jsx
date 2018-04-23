@@ -9,7 +9,7 @@ import TopicDetail from '../views/topic-detail/index'
 import MobxComponent from '../views/mobx/index'
 
 export default () => [
-  <Route key="index" path="/" render={() => <Redirect to="/list" />} exact />,
+  <Route key="index" path="/" render={() => <Redirect to="/mobx" />} exact />,
   <Route key="list" path="/list" component={TopicList} />,
   <Route key="detail" path="/detail" component={TopicDetail} />,
   <Route key="mobx" path="/mobx" component={MobxComponent} />,

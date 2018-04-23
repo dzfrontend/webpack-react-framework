@@ -8,7 +8,8 @@
  	target: 'node', //target表示执行环境为node
  	entry: {
  		app: path.join(__dirname, '../client/server-entry.js')
- 	},
+    },
+    externals: Object.keys(require('../package.json').dependencies), // 排除的打包的包
  	output: {
  		filename: 'server-entry.js', //server端没有用hash
  		path: path.join(__dirname, '../dist'), //打包路径

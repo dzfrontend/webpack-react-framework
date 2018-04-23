@@ -24,11 +24,20 @@ class AppState {
     @action changeName(name) {
       this.name = name
     }
+
+    // 这么写是因为服务端渲染需要返回json格式的state
+    toJson() {
+        return {
+            count: this.count,
+            name: this.name,
+        }
+    }
 }
 
-const appState = new AppState()
+// const appState = new AppState()
+// setInterval(() => {
+//     appState.add()
+// }, 1000)
+// export default appState
 
-setInterval(() => {
-    appState.add()
-}, 1000)
-export default appState
+export default AppState

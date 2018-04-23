@@ -46,7 +46,11 @@ const config = {
     plugins: [
         new HTMLPlugin({
             template: path.join(__dirname, '../client/template.html') //指定模板文件
-        }) // 安装html-webpack-plugin插件,自动生成index.html文件(如果不存在指定模板文件时),并且把打包文件注入html里面
+        }), // 安装html-webpack-plugin插件,自动生成index.html文件(如果不存在指定模板文件时),并且把打包文件注入html里面
+        new HTMLPlugin({
+            template: '!!ejs-compiled-loader!' + path.join(__dirname, '../client/server.template.ejs'),
+            filename: 'server.ejs'
+        }) // 处理ejs => 服务端渲染mobx中state 要用ejs模板
     ]
 }
 

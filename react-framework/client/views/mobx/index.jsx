@@ -17,6 +17,15 @@ export default class MobxComponent extends React.Component {
     changeName(event) {
         this.props.appState.changeName(event.target.value)
     }
+
+    asyncBootstrap() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                this.props.appState.add()
+                resolve(true)
+            })
+        })
+    }
     render() {
         return (
             <div>
