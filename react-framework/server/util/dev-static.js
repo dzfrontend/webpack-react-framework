@@ -1,16 +1,19 @@
 /**
  * React本地开发'development'环境的服务端渲染配置：
+ * 注释部分提取到了公共server-render.js里
  */
 const axios = require('axios')
 const path = require('path')
 const webpack = require('webpack')
 const MemoryFs = require('memory-fs') // 从内存读取
 const serverConfig = require('../../webpack/webpack.config.server') // 服务端webpack配置
-const ReactSSR = require('react-dom/server')
+// const ReactSSR = require('react-dom/server')
 const proxy = require('http-proxy-middleware') // expres代理中间件，代理
-const asyncBootstrap = require('react-async-bootstrapper').default
-const ejs = require('ejs')
-const serialize = require('serialize-javascript')
+// const asyncBootstrap = require('react-async-bootstrapper').default
+// const ejs = require('ejs')
+// const serialize = require('serialize-javascript')
+// const Helmet = require('react-helmet').default
+const serverRender = require('./server-render')
 
 const getTemplate = () => {
     return new Promise((resolve, reject) => {
@@ -24,7 +27,6 @@ const getTemplate = () => {
     })
 }
 
-// const Module = module.constructor // 模块 改成下面的
 const NativeModule = require('module')
 const vm = require('vm')
 const getModuleFromString = (bundle, filename) => {
@@ -42,7 +44,9 @@ const getModuleFromString = (bundle, filename) => {
 const serverCompiler = webpack(serverConfig)
 const mfs = new MemoryFs
 serverCompiler.outputFileSystem = mfs // 把mfs配置到webpack
-let serverEntry, createStores
+// let serverEntry;
+// let createStoreMap;
+let serverBundle;
 
 // webpack打包
 serverCompiler.watch({}, (err, stats) => {
@@ -60,20 +64,19 @@ serverCompiler.watch({}, (err, stats) => {
 
     // 文件从内存读出为String，需要变成模块
     const bundle = mfs.readFileSync(bundlePath, 'utf-8')
-    // const m = new Module()
-    // m._compile(bundle, 'server-entry.js') //m_compile编译bundle成模块，命名为'server-entry.js'
     const m = getModuleFromString(bundle, 'server-entry.js')
-    serverEntry = m.exports.default // 模块的default
-    createStores = m.exports.createStoreMap // 取webpack里面store
+    // serverEntry = m.exports.default // 模块的default
+    // createStoreMap = m.exports.createStoreMap // 取webpack里面store
+    serverBundle = m.exports
 })
 
 
-const getStoreState = (stores) => {
-    return Object.keys(stores).reduce((result, storeName) => {
-        result[storeName] = stores[storeName].toJson()
-        return result
-    }, {})
-}
+// const getStoreState = (stores) => {
+//     return Object.keys(stores).reduce((result, storeName) => {
+//         result[storeName] = stores[storeName].toJson()
+//         return result
+//     }, {})
+// }
 
 module.exports = function (app) {
 	/*
@@ -86,33 +89,44 @@ module.exports = function (app) {
     }))
 
     // 服务端请求
-    app.get('*', function (req, res) {
+    app.get('*', function (req, res, next) {
+        if (!serverBundle) {
+            return res.send('waiting for compile, refresh later')
+        }
         getTemplate().then(template => {
-            // router和mobx处理
-            const routerContext = {}
-            const stores = createStores()
-            const app = serverEntry(stores, routerContext, req.url) // serverEntry就是client/server-entry.js export default
+            return serverRender(serverBundle, template, req, res)
+        }).catch(next)
+        // getTemplate().then(template => {
+            // // router和mobx处理
+            // const routerContext = {}
+            // const stores = createStoreMap()
+            // const app = serverEntry(stores, routerContext, req.url) // serverEntry就是client/server-entry.js export default
 
-            asyncBootstrap(app).then( () => {
-                // 解决react-router重定向问题
-                if(routerContext.url){ // asyncBootstrap之后拿到routerContext，有url说明是重定向
-                    res.status(302).setHeader('Location', routerContext.url) // 自动跳转到重定向路由
-                    res.end()
-                    return
-                }
+            // asyncBootstrap(app).then( () => {
+            //     // 解决react-router重定向问题
+            //     if(routerContext.url){ // asyncBootstrap之后拿到routerContext，有url说明是重定向
+            //         res.status(302).setHeader('Location', routerContext.url) // 自动跳转到重定向路由
+            //         res.end()
+            //         return
+            //     }
 
-                // 解决重定向mobx state
-                const state = getStoreState(stores) // 解析 toJson的state
-                console.log(serialize(state))
+            //     // 解决重定向mobx state
+            //     const state = getStoreState(stores) // 解析 toJson的state
+            //     console.log(serialize(state))
 
-                const appString = ReactSSR.renderToString(app)
-                // res.send(template.replace('<app></app>', appString)) // 用ejs代替，才能渲染出mobx state
-                const html = ejs.render(template, {
-                    appString: appString,
-                    initialState: serialize(state),
-                })
-                res.send(html)
-            })
-        })
+            //     const appString = ReactSSR.renderToString(app)
+            //     const helmet = Helmet.rewind()
+            //     // res.send(template.replace('<app></app>', appString)) // 用ejs代替，才能渲染出mobx state
+            //     const html = ejs.render(template, {
+            //         appString: appString,
+            //         initialState: serialize(state),
+            //         meta: helmet.meta.toString(), // seo等
+            //         title: helmet.title.toString(),
+            //         style: helmet.style.toString(),
+            //         link: helmet.link.toString()
+            //     })
+            //     res.send(html)
+            // })
+        // })
     })
 }

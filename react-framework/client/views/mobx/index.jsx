@@ -4,6 +4,7 @@
 import React from 'react'
 import { observer, inject } from 'mobx-react'
 import PropTypes from 'prop-types'
+import Helmet from 'react-helmet'
 
 import { AppState } from '../../store/app-state'
 // 将绑定好的mobx注册到组件中并且observer（监听mobx的state）
@@ -29,6 +30,11 @@ export default class MobxComponent extends React.Component {
     render() {
         return (
             <div>
+                <Helmet>
+                    {/* react-helmet用于react服务端渲染seo */}
+                    <title>This is mobx page</title>
+                    <meta name="description" content="This is description" />
+                </Helmet>
                 <div>mobx page</div>
                 <input type="text" onChange={this.changeName} />
                 <span>{this.props.appState.msg}</span>

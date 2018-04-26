@@ -605,7 +605,33 @@ mobx的使用：
 	}
 ```
 
+### 完成服务端渲染
+
+> 当加了react-router和mobx后，需要对服务端渲染做进一步修改，这里不做过多介绍，代码server/文件夹里，提取了development和production环境的公共服务端渲染代码到server/util/server-render.js里。这样react服务端渲染架子搭建完成。
+
+### 关于SEO配置
+
+> 用了react-helmet，指定title，meta等内容，然后通过服务端渲染返回内容到ejs模板中
 
 
-## 项目目录
+## 项目运行
+
+> 运行'development'环境服务端渲染：
+
+	npm install
+	npm run dev:client
+	npm run dev:server
+	
+打开<http:localhost:3333>.
+
+> 运行'production'环境服务端渲染：
+
+	npm install
+	npm run build
+	npm run start
+
+打开<http:localhost:3333>.
+
+>对于上面的运行命令可以看package.json的'scripts'的启动命令，然后结合服务端渲染代码，更容易理解服务端渲染是怎样配置的。
+
 
